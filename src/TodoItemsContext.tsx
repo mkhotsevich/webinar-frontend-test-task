@@ -5,6 +5,7 @@ import {
   useEffect,
   useReducer,
 } from 'react'
+import produce from 'immer'
 
 export interface TodoItem {
   id: string
@@ -102,40 +103,35 @@ export const useTodoItems = () => {
 }
 
 function todoItemsReducer(state: TodoItemsState, action: TodoItemsAction) {
-  switch (action.type) {
-    case 'loadState': {
-      return action.data
+  return produce(state, (draft) => {
+    switch (action.type) {
+      case 'loadState':
+        draft.todoItems = action.data.todoItems
+        break
+      case 'add':
+        draft.todoItems.push({
+          id: generateId(),
+          done: false,
+          ...action.data.todoItem,
+        })
+        break
+      case 'delete':
+        draft.todoItems = draft.todoItems.filter(
+          ({ id }) => id !== action.data.id
+        )
+        break
+      case 'toggleDone':
+        draft.todoItems = draft.todoItems.map((i) => {
+          if (i.id === action.data.id) {
+            i.done = !i.done
+          }
+          return i
+        })
+        break
+      default:
+        throw new Error()
     }
-    case 'add':
-      return {
-        ...state,
-        todoItems: [
-          { id: generateId(), done: false, ...action.data.todoItem },
-          ...state.todoItems,
-        ],
-      }
-    case 'delete':
-      return {
-        ...state,
-        todoItems: state.todoItems.filter(({ id }) => id !== action.data.id),
-      }
-    case 'toggleDone':
-      const itemIndex = state.todoItems.findIndex(
-        ({ id }) => id === action.data.id
-      )
-      const item = state.todoItems[itemIndex]
-
-      return {
-        ...state,
-        todoItems: [
-          ...state.todoItems.slice(0, itemIndex),
-          { ...item, done: !item.done },
-          ...state.todoItems.slice(itemIndex + 1),
-        ],
-      }
-    default:
-      throw new Error()
-  }
+  })
 }
 
 function generateId() {
