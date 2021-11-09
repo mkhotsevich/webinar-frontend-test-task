@@ -95,6 +95,15 @@ export const TodoItemsContextProvider = ({
     localStorage.setItem(localStorageKey, JSON.stringify(state))
   }, [state])
 
+  window.onstorage = () => {
+    const savedState = localStorage.getItem(localStorageKey)
+    if (savedState) {
+      try {
+        dispatch({ type: 'loadState', data: JSON.parse(savedState) })
+      } catch {}
+    }
+  }
+
   return (
     <TodoItemsContext.Provider value={{ ...state, dispatch }}>
       {children}
