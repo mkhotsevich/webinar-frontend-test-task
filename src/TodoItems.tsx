@@ -13,6 +13,12 @@ import classnames from 'classnames'
 import { motion } from 'framer-motion'
 import { TodoItem, useTodoItems } from './TodoItemsContext'
 import TodoItemModal from './TodoItemModal'
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from 'react-beautiful-dnd'
 
 const spring = {
   type: 'spring',
@@ -29,7 +35,7 @@ const useTodoItemListStyles = makeStyles({
 })
 
 export const TodoItemsList = function () {
-  const { todoItems } = useTodoItems()
+  const { todoItems, dispatch } = useTodoItems()
 
   const classes = useTodoItemListStyles()
 
@@ -37,22 +43,47 @@ export const TodoItemsList = function () {
     if (a.done && !b.done) {
       return 1
     }
-
     if (!a.done && b.done) {
       return -1
     }
-
     return 0
   })
 
+  const handlerDragEnd = (result: DropResult) => {
+    if (!result.destination) return
+    const items = Array.from(todoItems)
+    const [reorderedItem] = items.splice(result.source.index, 1)
+    items.splice(result.destination.index, 0, reorderedItem)
+    dispatch({ type: 'loadState', data: { todoItems: items } })
+  }
+
   return (
-    <ul className={classes.root}>
-      {sortedItems.map((item) => (
-        <motion.li key={item.id} transition={spring} layout={true}>
-          <TodoItemCard item={item} />
-        </motion.li>
-      ))}
-    </ul>
+    <DragDropContext onDragEnd={handlerDragEnd}>
+      <Droppable droppableId="todos">
+        {(provided) => (
+          <ul
+            className={classes.root}
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+          >
+            {sortedItems.map((item, index) => (
+              <Draggable key={item.id} draggableId={item.id} index={index}>
+                {(provided) => (
+                  <li
+                    {...provided.draggableProps}
+                    ref={provided.innerRef}
+                    {...provided.dragHandleProps}
+                  >
+                    <TodoItemCard item={item} />
+                  </li>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </ul>
+        )}
+      </Droppable>
+    </DragDropContext>
   )
 }
 
