@@ -49,11 +49,23 @@ interface TodoItemsToggleDoneAction {
   }
 }
 
+interface TodoItemsEditAction {
+  type: 'edit'
+  data: {
+    todoItem: {
+      id: string
+      title: string
+      details: string
+    }
+  }
+}
+
 type TodoItemsAction =
   | TodoItemsAddAction
   | TodoItemsLoadStateAction
   | TodoItemsDeleteAction
   | TodoItemsToggleDoneAction
+  | TodoItemsEditAction
 
 const TodoItemsContext = createContext<
   (TodoItemsState & { dispatch: (action: TodoItemsAction) => void }) | null
@@ -124,6 +136,15 @@ function todoItemsReducer(state: TodoItemsState, action: TodoItemsAction) {
         draft.todoItems = draft.todoItems.map((i) => {
           if (i.id === action.data.id) {
             i.done = !i.done
+          }
+          return i
+        })
+        break
+      case 'edit':
+        draft.todoItems = draft.todoItems.map((i) => {
+          if (i.id === action.data.todoItem.id) {
+            i.title = action.data.todoItem.title
+            i.details = action.data.todoItem.details
           }
           return i
         })
