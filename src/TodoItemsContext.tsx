@@ -17,10 +17,42 @@ interface TodoItemsState {
   todoItems: TodoItem[]
 }
 
-interface TodoItemsAction {
-  type: 'loadState' | 'add' | 'delete' | 'toggleDone'
-  data: any
+interface TodoItemsAddAction {
+  type: 'add'
+  data: {
+    todoItem: {
+      title: string
+      details: string
+    }
+  }
 }
+
+interface TodoItemsLoadStateAction {
+  type: 'loadState'
+  data: {
+    todoItems: TodoItem[]
+  }
+}
+
+interface TodoItemsDeleteAction {
+  type: 'delete'
+  data: {
+    id: string
+  }
+}
+
+interface TodoItemsToggleDoneAction {
+  type: 'toggleDone'
+  data: {
+    id: string
+  }
+}
+
+type TodoItemsAction =
+  | TodoItemsAddAction
+  | TodoItemsLoadStateAction
+  | TodoItemsDeleteAction
+  | TodoItemsToggleDoneAction
 
 const TodoItemsContext = createContext<
   (TodoItemsState & { dispatch: (action: TodoItemsAction) => void }) | null
